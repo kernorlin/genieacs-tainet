@@ -81,5 +81,9 @@
     "test": "esbuild build/test.ts --bundle --platform=node --target=node18 --packages=external | node && node --test --enable-source-maps test/*.js && rm test/*.js",
     "lint": "esbuild build/lint.ts --bundle --platform=node --target=node16 --packages=external | node",
     "build": "esbuild build/build.ts --bundle --platform=node --target=node12 --packages=external | node"
+  },
+  "allowScripts": {
+    "esbuild@0.27.4": true,
+    "@parcel/watcher@2.5.6": true
   }
 }
