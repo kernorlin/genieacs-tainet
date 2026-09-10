@@ -242,12 +242,11 @@ export function createLayout(
   const desktopHeader = div(
     {
       class:
-        "hidden md:flex md:fixed md:top-0 md:left-0 md:right-0 md:h-16 z-30 items-center border-b border-[#9fbf86] bg-[#e8f0c2]",
+        "hidden md:flex md:fixed md:top-0 md:left-0 md:right-0 md:h-16 z-30 items-center bg-[#e8f0c2]",
     },
     div(
       {
-        class:
-          "w-64 h-full flex items-center px-4 border-r border-[#9fbf86] bg-[#e8f0c2]",
+        class: "w-64 h-full flex items-center px-4 bg-[#e8f0c2]",
       },
       img({ class: "h-10 w-auto", src: `/${LOGO_SVG}`, alt: "TAINET" }),
     ),
@@ -261,8 +260,7 @@ export function createLayout(
     },
     div(
       {
-        class:
-          "flex-1 flex flex-col min-h-0 border-r border-[#9fbf86] bg-[#ffffcc]",
+        class: "flex-1 flex flex-col min-h-0 bg-[#ffffcc]",
       },
       div(
         { class: "flex-1 flex flex-col pt-5 pb-4 overflow-y-auto" },
@@ -282,7 +280,7 @@ export function createLayout(
   const mobileHeader = div(
     {
       class:
-        "sticky top-0 z-10 md:hidden flex items-center h-14 px-2 border-b border-[#9fbf86] bg-[#e8f0c2]",
+        "sticky top-0 z-10 md:hidden flex items-center h-14 px-2 bg-[#e8f0c2]",
     },
     button(
       {
