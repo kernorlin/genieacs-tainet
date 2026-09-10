@@ -141,8 +141,8 @@ export function createLayout(
           class: () =>
             classNames(
               `${routeSignal.get()}/`.startsWith(`${item.href}/`)
-                ? "bg-stone-100 text-stone-900"
-                : "text-stone-600 hover:bg-stone-50 hover:text-stone-900",
+                ? "bg-[#9fbf86] text-stone-900 shadow-inner"
+                : "text-stone-700 hover:bg-[#e8f0c2] hover:text-stone-900",
               `group flex items-center px-2 py-2 font-medium rounded-md ${textSize}`,
             ),
         },
@@ -155,11 +155,11 @@ export function createLayout(
   function createUserSection(textSize: string): HTMLElement {
     if (window.username) {
       return div(
-        { class: `flex items-center px-2 text-stone-600 ${textSize}` },
+        { class: `flex items-center px-2 text-stone-700 ${textSize}` },
         window.username,
         button(
           {
-            class: `ml-auto ${textSize} font-medium text-cyan-700 hover:text-cyan-900`,
+            class: `ml-auto ${textSize} font-medium text-stone-800 hover:text-black`,
             onclick: handleLogout,
           },
           "Log out",
@@ -171,7 +171,7 @@ export function createLayout(
         a(
           {
             href: "/login",
-            class: `${textSize} font-medium text-cyan-700 hover:text-cyan-900`,
+            class: `${textSize} font-medium text-stone-800 hover:text-black`,
           },
           "Log in",
         ),
@@ -198,7 +198,7 @@ export function createLayout(
     (sidebarEl = div(
       {
         class:
-          "mobile-sidebar relative flex-1 flex flex-col max-w-xs w-full bg-white transition ease-in-out duration-300 transform -translate-x-full",
+          "mobile-sidebar relative flex-1 flex flex-col max-w-xs w-full bg-[#ffffcc] transition ease-in-out duration-300 transform -translate-x-full",
       },
       // Close button
       (closeButtonEl = div(
@@ -222,7 +222,7 @@ export function createLayout(
         { class: "flex-1 h-0 pt-5 pb-4 overflow-y-auto" },
         div(
           { class: "flex-shrink-0 flex items-center px-4" },
-          img({ class: "h-10 w-auto", src: `/${LOGO_SVG}`, alt: "GenieACS" }),
+          img({ class: "h-10 w-auto", src: `/${LOGO_SVG}`, alt: "TAINET" }),
         ),
         nav(
           { class: "mt-5 px-2 flex flex-col gap-1" },
@@ -231,7 +231,7 @@ export function createLayout(
       ),
       div({ class: "p-2" }, createUserSection("text-base")),
       div(
-        { class: "text-sm font-mono text-stone-400 text-right p-2" },
+        { class: "text-sm font-mono text-stone-500 text-right p-2" },
         `v${VERSION}`,
       ),
     )),
@@ -239,52 +239,62 @@ export function createLayout(
     div({ class: "flex-shrink-0 w-14" }),
   );
 
-  // Desktop sidebar
-  const desktopSidebar = div(
+  const desktopHeader = div(
     {
       class:
-        "hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:left-0 z-20",
+        "hidden md:flex md:fixed md:top-0 md:left-0 md:right-0 md:h-16 z-30 items-center border-b border-[#9fbf86] bg-[#e8f0c2]",
     },
     div(
       {
         class:
-          "flex-1 flex flex-col min-h-0 border-r border-stone-200 bg-white",
+          "w-64 h-full flex items-center px-4 border-r border-[#9fbf86] bg-[#e8f0c2]",
+      },
+      img({ class: "h-10 w-auto", src: `/${LOGO_SVG}`, alt: "TAINET" }),
+    ),
+  );
+
+  // Desktop sidebar
+  const desktopSidebar = div(
+    {
+      class:
+        "hidden md:flex md:w-64 md:flex-col md:fixed md:top-16 md:bottom-0 md:left-0 z-20",
+    },
+    div(
+      {
+        class:
+          "flex-1 flex flex-col min-h-0 border-r border-[#9fbf86] bg-[#ffffcc]",
       },
       div(
         { class: "flex-1 flex flex-col pt-5 pb-4 overflow-y-auto" },
-        div(
-          { class: "flex items-center flex-shrink-0 px-4" },
-          img({ class: "h-10 w-auto", src: `/${LOGO_SVG}`, alt: "GenieACS" }),
-        ),
         nav(
-          { class: "mt-5 flex-1 px-2 bg-white flex flex-col gap-1" },
+          { class: "flex-1 px-2 flex flex-col gap-1" },
           ...createNavLinks("text-sm"),
         ),
       ),
       div({ class: "p-2" }, createUserSection("text-sm")),
       div(
-        { class: "text-xs font-mono text-stone-400 text-right p-2" },
+        { class: "text-xs font-mono text-stone-500 text-right p-2" },
         `v${VERSION}`,
       ),
     ),
   );
 
-  // Mobile menu button
-  const mobileMenuButton = div(
+  const mobileHeader = div(
     {
       class:
-        "sticky top-0 z-10 md:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-stone-100",
+        "sticky top-0 z-10 md:hidden flex items-center h-14 px-2 border-b border-[#9fbf86] bg-[#e8f0c2]",
     },
     button(
       {
         type: "button",
         class:
-          "-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-stone-500 hover:text-stone-900 focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-cyan-500",
+          "h-12 w-12 inline-flex items-center justify-center rounded-md text-stone-700 hover:text-stone-900 focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-cyan-500",
         onclick: openSidebar,
       },
       span({ class: "sr-only" }, "Open sidebar"),
       createIcon({ name: "menu", class: "h-6 w-6" }),
     ),
+    img({ class: "h-9 w-auto ml-2", src: `/${LOGO_SVG}`, alt: "TAINET" }),
   );
 
   // Page content slot — reactive child auto-disposes old page on change
@@ -292,10 +302,10 @@ export function createLayout(
 
   // Main content
   const mainContent = div(
-    { class: "md:pl-64 flex flex-col flex-1" },
-    mobileMenuButton,
+    { class: "md:pl-64 md:pt-16 flex flex-col flex-1 min-h-screen bg-white" },
+    mobileHeader,
     main(
-      { class: "flex-1" },
+      { class: "flex-1 bg-white" },
       div(
         { class: "py-6" },
         div({ class: "px-4 sm:px-6 md:px-8" }, contentSlot),
@@ -303,5 +313,5 @@ export function createLayout(
     ),
   );
 
-  return div({}, dialogEl, desktopSidebar, mainContent);
+  return div({}, dialogEl, desktopHeader, desktopSidebar, mainContent);
 }
