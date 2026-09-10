@@ -38,6 +38,58 @@ function getDownloadUrl(
   }).toString()}`;
 }
 
+function evaluateDeviceValue(
+  expression: Expression,
+  device: Record<string, unknown>,
+): unknown {
+  const value = expression.evaluate((e): Expression.Literal => {
+    if (e instanceof Expression.Literal) return e;
+    if (e instanceof Expression.Parameter) {
+      return new Expression.Literal(device[e.path.toString()] ?? null);
+    }
+    return new Expression.Literal(null);
+  });
+
+  return value instanceof Expression.Literal ? value.value : null;
+}
+
+function isValidDeviceWebIp(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+
+  const ip = value.trim();
+  if (ip === "0.0.0.0") return false;
+  if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) return false;
+
+  return ip.split(".").every((part) => {
+    const number = Number(part);
+    return Number.isInteger(number) && number >= 0 && number <= 255;
+  });
+}
+
+function getDeviceWebIp(
+  attr: { label: string; parameter: Expression },
+  device: Record<string, unknown>,
+): string | null {
+  if (attr.label.trim().toLowerCase() !== "ip") return null;
+
+  const value = evaluateDeviceValue(attr.parameter, device);
+  return isValidDeviceWebIp(value) ? value.trim() : null;
+}
+
+function renderDeviceWebIpLink(content: unknown, ip: string): Node {
+  return a(
+    {
+      class: "text-cyan-700 hover:text-cyan-900",
+      href: `http://${ip}`,
+      target: "_blank",
+      rel: "noopener noreferrer",
+      title: `Open device Web UI: http://${ip}`,
+      onclick: (e) => e.stopPropagation(),
+    },
+    ...(([content ?? ip] as unknown[]) as (Node | string)[]),
+  );
+}
+
 function unpackSmartQuery(query: Expression): Expression {
   return query.evaluate((e) => {
     if (e instanceof Expression.FunctionCall) {
@@ -294,13 +346,18 @@ export function createPage(attrs: Attrs): HTMLElement {
         }),
       );
     }
-    return createMithrilHost(() => {
+    const content = createMithrilHost(() => {
       return mContext.context(
         { device: device, parameter: attr.parameter },
         attr.type || "parameter",
         attr.raw,
       );
     });
+
+    const deviceWebIp = getDeviceWebIp(attr, device);
+    if (deviceWebIp) return renderDeviceWebIpLink(content, deviceWebIp);
+
+    return content;
   };
 
   // Record actions callback returns DOM node
