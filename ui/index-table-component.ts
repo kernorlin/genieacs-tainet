@@ -120,7 +120,7 @@ export function createIndexTable(attrs: IndexTableAttrs): HTMLElement {
     if (hasActions) {
       cells.push(
         td(
-          { class: "px-6 py-4 whitespace-nowrap text-sm text-stone-500" },
+          { class: "px-4 py-2 whitespace-nowrap text-sm text-stone-500" },
           input({
             type: "checkbox",
             class:
@@ -162,7 +162,7 @@ export function createIndexTable(attrs: IndexTableAttrs): HTMLElement {
 
       cells.push(
         td(
-          { class: "py-4 whitespace-nowrap text-sm text-stone-900 " + padding },
+          { class: "py-2 whitespace-nowrap text-sm text-stone-900 " + padding },
           ...asChildren(content),
         ),
       );
@@ -178,7 +178,7 @@ export function createIndexTable(attrs: IndexTableAttrs): HTMLElement {
           td(
             {
               class:
-                "pl-3 pr-6 py-4 whitespace-nowrap text-right text-sm font-medium",
+                "pl-3 pr-6 py-2 whitespace-nowrap text-right text-sm font-medium",
             },
             ...asChildren(btn),
           ),
@@ -208,7 +208,7 @@ export function createIndexTable(attrs: IndexTableAttrs): HTMLElement {
   if (hasActions) {
     headerCells.push(
       th(
-        { class: "px-6 py-3.5 w-0", scope: "col" },
+        { class: "px-4 py-2 w-0", scope: "col" },
         span({ class: "sr-only" }, "Select"),
         input({
           type: "checkbox",
@@ -246,7 +246,7 @@ export function createIndexTable(attrs: IndexTableAttrs): HTMLElement {
         th(
           {
             class:
-              "py-3.5 text-left text-sm font-semibold text-stone-500 " +
+              "py-2 text-left text-sm font-semibold text-stone-500 " +
               padding,
             scope: "col",
           },
@@ -269,7 +269,7 @@ export function createIndexTable(attrs: IndexTableAttrs): HTMLElement {
       th(
         {
           class:
-            "py-3.5 text-left text-sm font-semibold text-stone-500 whitespace-nowrap " +
+            "py-2 text-left text-sm font-semibold text-stone-500 whitespace-nowrap " +
             padding,
           scope: "col",
         },
@@ -283,7 +283,7 @@ export function createIndexTable(attrs: IndexTableAttrs): HTMLElement {
   }
 
   if (recordActionsCallback) {
-    headerCells.push(th({ class: "pl-3 pr-6 py-3.5 w-0", scope: "col" }));
+    headerCells.push(th({ class: "pl-3 pr-6 py-2 w-0", scope: "col" }));
   }
 
   // --- Table (created once, children update via signals) ---
@@ -301,7 +301,7 @@ export function createIndexTable(attrs: IndexTableAttrs): HTMLElement {
           return tr(
             td(
               {
-                class: "text-sm font-medium text-center text-stone-500 p-4",
+                class: "text-sm font-medium text-center text-stone-500 p-3",
                 colspan: colCount,
               },
               "Loading\u2026",
@@ -312,7 +312,7 @@ export function createIndexTable(attrs: IndexTableAttrs): HTMLElement {
           td(
             {
               class:
-                "bg-stripes text-sm font-medium text-center text-stone-500 p-4",
+                "bg-stripes text-sm font-medium text-center text-stone-500 p-3",
               colspan: colCount,
             },
             "No records",
@@ -325,7 +325,7 @@ export function createIndexTable(attrs: IndexTableAttrs): HTMLElement {
       tr(
         td(
           {
-            class: "px-6 py-3 text-sm font-medium text-stone-700",
+            class: "px-4 py-2 text-sm font-medium text-stone-700",
             colspan: colCount,
           },
           div(
@@ -341,7 +341,7 @@ export function createIndexTable(attrs: IndexTableAttrs): HTMLElement {
               button(
                 {
                   class:
-                    "px-4 py-2 border border-stone-300 rounded-md text-stone-700 bg-white hover:bg-stone-50 ml-4 disabled:opacity-50 disabled:cursor-not-allowed",
+                    "px-3 py-1.5 border border-stone-300 rounded-md text-stone-700 bg-white hover:bg-stone-50 ml-4 disabled:opacity-50 disabled:cursor-not-allowed",
                   title: "Show more records",
                   disabled: () => {
                     const records = data();
@@ -406,7 +406,7 @@ export function createIndexTable(attrs: IndexTableAttrs): HTMLElement {
           const buttons = (actionsCallback as (sel: Set<string>) => unknown[])(
             selected,
           );
-          return div({ class: "flex gap-3 mt-4" }, ...asChildren(buttons));
+          return div({ class: "flex gap-3 mt-3" }, ...asChildren(buttons));
         }
       : null,
   );

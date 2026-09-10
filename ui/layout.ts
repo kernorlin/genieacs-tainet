@@ -143,7 +143,7 @@ export function createLayout(
               `${routeSignal.get()}/`.startsWith(`${item.href}/`)
                 ? "bg-[#9fbf86] text-stone-900 shadow-inner"
                 : "text-stone-700 hover:bg-[#e8f0c2] hover:text-stone-900",
-              `group flex items-center px-2 py-2 font-medium rounded-md ${textSize}`,
+              `group flex items-center px-2 py-1.5 font-medium rounded-md ${textSize}`,
             ),
         },
         item.name,
@@ -225,7 +225,7 @@ export function createLayout(
           img({ class: "h-10 w-auto", src: `/${LOGO_SVG}`, alt: "TAINET" }),
         ),
         nav(
-          { class: "mt-5 px-2 flex flex-col gap-1" },
+          { class: "mt-5 px-2 flex flex-col gap-0.5" },
           ...createNavLinks("text-base"),
         ),
       ),
@@ -265,7 +265,7 @@ export function createLayout(
       div(
         { class: "flex-1 flex flex-col pt-5 pb-4 overflow-y-auto" },
         nav(
-          { class: "flex-1 px-2 flex flex-col gap-1" },
+          { class: "flex-1 px-2 flex flex-col gap-0.5" },
           ...createNavLinks("text-sm"),
         ),
       ),
