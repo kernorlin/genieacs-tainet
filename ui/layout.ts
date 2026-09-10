@@ -6,12 +6,31 @@ import { logOut } from "./api-client.ts";
 import * as notifications from "./notifications.ts";
 import { version as VERSION } from "../package.json";
 import { LOGO_SVG } from "../build/assets.ts";
-import { SignalBase } from "./signals.ts";
+import { SignalBase, StateSignal } from "./signals.ts";
 import { div, nav, button, a, span, img, main } from "./dom.ts";
 
 interface NavItem {
   name: string;
   href: string;
+}
+
+const SIDEBAR_WIDTH_STORAGE_KEY = "tainet.sidebarWidth";
+const DEFAULT_SIDEBAR_WIDTH = 208;
+const MIN_SIDEBAR_WIDTH = 176;
+const MAX_SIDEBAR_WIDTH = 320;
+
+function clampSidebarWidth(width: number): number {
+  return Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, width));
+}
+
+function readSidebarWidth(): number {
+  try {
+    const storedWidth = Number(localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY));
+    if (Number.isFinite(storedWidth)) return clampSidebarWidth(storedWidth);
+  } catch {
+    // Ignore storage errors and use the default width.
+  }
+  return DEFAULT_SIDEBAR_WIDTH;
 }
 
 function getNavigation(): NavItem[] {
@@ -85,6 +104,7 @@ export function createLayout(
   pageSignal: SignalBase<HTMLElement | null>,
 ): HTMLElement {
   const navigation = getNavigation();
+  const sidebarWidthSignal = new StateSignal(readSidebarWidth());
 
   // DOM references for transition targets
   let overlayEl: HTMLElement | null = null;
@@ -92,6 +112,57 @@ export function createLayout(
   let closeButtonEl: HTMLElement | null = null;
   let dialogEl: HTMLElement | null = null;
   let closeTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function setSidebarWidth(width: number): void {
+    const nextWidth = clampSidebarWidth(width);
+    sidebarWidthSignal.set(nextWidth);
+    try {
+      localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(nextWidth));
+    } catch {
+      // Width persistence is best-effort only.
+    }
+  }
+
+  function startSidebarResize(e: MouseEvent): void {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = sidebarWidthSignal.get();
+    const previousCursor = document.body.style.cursor;
+    const previousUserSelect = document.body.style.userSelect;
+
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    function onMouseMove(moveEvent: MouseEvent): void {
+      setSidebarWidth(startWidth + moveEvent.clientX - startX);
+    }
+
+    function onMouseUp(): void {
+      document.body.style.cursor = previousCursor;
+      document.body.style.userSelect = previousUserSelect;
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    }
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  }
+
+  function resizeSidebarWithKeyboard(e: KeyboardEvent): void {
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      setSidebarWidth(sidebarWidthSignal.get() - 8);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      setSidebarWidth(sidebarWidthSignal.get() + 8);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      setSidebarWidth(MIN_SIDEBAR_WIDTH);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      setSidebarWidth(MAX_SIDEBAR_WIDTH);
+    }
+  }
 
   function openSidebar(): void {
     if (closeTimer) {
@@ -246,9 +317,14 @@ export function createLayout(
     },
     div(
       {
-        class: "w-64 h-full flex items-center px-4 bg-[#e8f0c2]",
+        class:
+          "w-[var(--tainet-sidebar-width)] h-full flex items-center px-4 bg-[#e8f0c2]",
       },
-      img({ class: "h-10 w-auto", src: `/${LOGO_SVG}`, alt: "TAINET" }),
+      img({
+        class: "max-h-10 max-w-full w-auto",
+        src: `/${LOGO_SVG}`,
+        alt: "TAINET",
+      }),
     ),
   );
 
@@ -256,7 +332,7 @@ export function createLayout(
   const desktopSidebar = div(
     {
       class:
-        "hidden md:flex md:w-64 md:flex-col md:fixed md:top-16 md:bottom-0 md:left-0 z-20",
+        "hidden md:flex md:w-[var(--tainet-sidebar-width)] md:flex-col md:fixed md:top-16 md:bottom-0 md:left-0 z-20",
     },
     div(
       {
@@ -275,6 +351,15 @@ export function createLayout(
         `v${VERSION}`,
       ),
     ),
+    div({
+      class:
+        "absolute top-0 right-0 h-full w-2 cursor-col-resize bg-transparent hover:bg-[#9fbf86]/30 focus:bg-[#9fbf86]/30 focus:outline-hidden",
+      role: "separator",
+      "aria-label": "Resize sidebar",
+      tabindex: 0,
+      onmousedown: startSidebarResize,
+      onkeydown: resizeSidebarWithKeyboard,
+    }),
   );
 
   const mobileHeader = div(
@@ -300,7 +385,10 @@ export function createLayout(
 
   // Main content
   const mainContent = div(
-    { class: "md:pl-64 md:pt-16 flex flex-col flex-1 min-h-screen bg-white" },
+    {
+      class:
+        "md:pl-[var(--tainet-sidebar-width)] md:pt-16 flex flex-col flex-1 min-h-screen bg-white",
+    },
     mobileHeader,
     main(
       { class: "flex-1 bg-white" },
@@ -311,5 +399,14 @@ export function createLayout(
     ),
   );
 
-  return div({}, dialogEl, desktopHeader, desktopSidebar, mainContent);
+  return div(
+    {
+      style: () =>
+        `--tainet-sidebar-width: ${sidebarWidthSignal.get()}px`,
+    },
+    dialogEl,
+    desktopHeader,
+    desktopSidebar,
+    mainContent,
+  );
 }
