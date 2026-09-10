@@ -8,6 +8,7 @@ import memoize from "../../lib/common/memoize.ts";
 import timeAgo from "../timeago.ts";
 import { icon } from "../icons.ts";
 import { FlatDevice } from "../../lib/ui/db.ts";
+import { decodeDeviceIdForDisplay } from "../device-id-display.ts";
 
 interface Attrs {
   device: FlatDevice;
@@ -100,7 +101,11 @@ const component: ClosureComponent<Attrs> = (): Component<Attrs> => {
         );
       }
 
-      const el = m("long-text", { text: `${value}` });
+      const displayValue =
+        parameter === "DeviceID.ID" && typeof value === "string"
+          ? decodeDeviceIdForDisplay(value)
+          : `${value}`;
+      const el = m("long-text", { text: displayValue });
 
       return m(
         "span.inline-flex overflow-hidden align-top",

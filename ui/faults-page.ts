@@ -15,6 +15,7 @@ import { stringify as yamlStringify } from "../lib/common/yaml.ts";
 import Expression from "../lib/common/expression.ts";
 import { div, h1, button, a } from "./dom.ts";
 import { createLongText } from "./long-text-component.ts";
+import { decodeDeviceIdForDisplay } from "./device-id-display.ts";
 
 const attributes = [
   { id: "device", label: "Device" },
@@ -136,12 +137,13 @@ export function createPage(attrs: Attrs): HTMLElement {
     fault: Record<string, unknown>,
   ): Node | string => {
     if (attr.id === "device") {
+      const deviceId = fault["device"] as string;
       return a(
         {
-          href: `/devices/${encodeURIComponent(fault["device"] as string)}`,
+          href: `/devices/${encodeURIComponent(deviceId)}`,
           class: "text-cyan-700 hover:text-cyan-900 font-medium",
         },
-        fault["device"] as string,
+        decodeDeviceIdForDisplay(deviceId),
       );
     }
 

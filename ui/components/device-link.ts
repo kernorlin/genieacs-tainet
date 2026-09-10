@@ -3,6 +3,7 @@ import { m } from "../components.ts";
 import { evaluateExpression } from "../reactive-store.ts";
 import Expression from "../../lib/common/expression.ts";
 import { FlatDevice } from "../../lib/ui/db.ts";
+import { decodeDeviceIdForDisplay } from "../device-id-display.ts";
 
 interface Attrs {
   device?: FlatDevice;
@@ -14,12 +15,17 @@ const component: ClosureComponent<Attrs> = (): Component<Attrs> => {
     view: (vnode) => {
       let deviceId;
       const device = vnode.attrs.device;
-      if (device) deviceId = device["DeviceID.ID"];
+      if (device) deviceId = device["DeviceID.ID"] as string;
 
       const children = Object.values(vnode.attrs.components).map((c) => {
         if (c instanceof Expression)
           c = evaluateExpression(c, device ?? {}).value;
-        if (typeof c !== "object" || c == null) return `${c}`;
+        if (typeof c !== "object" || c == null) {
+          const text = `${c}`;
+          return deviceId && text === deviceId
+            ? decodeDeviceIdForDisplay(deviceId)
+            : text;
+        }
         const comp = c as { type: Expression };
         const type = evaluateExpression(comp.type, device ?? {}).value;
         if (!type) return null;

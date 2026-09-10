@@ -7,6 +7,7 @@ import Expression from "../lib/common/expression.ts";
 import Path from "../lib/common/path.ts";
 import { renderView } from "./views.ts";
 import { div } from "./dom.ts";
+import { decodeDeviceIdForDisplay } from "./device-id-display.ts";
 
 export interface Attrs {
   deviceId: string;
@@ -32,7 +33,8 @@ export function init(args: URLSearchParams): Promise<Attrs> {
 }
 
 export function createPage(attrs: Attrs): HTMLElement {
-  document.title = `${attrs.deviceId} - Devices - GenieACS`;
+  const displayDeviceId = decodeDeviceIdForDisplay(attrs.deviceId);
+  document.title = `${displayDeviceId} - Devices - GenieACS`;
 
   const conf = deviceConfig;
 
@@ -54,7 +56,7 @@ export function createPage(attrs: Attrs): HTMLElement {
       if (!deviceQuery.fulfilling) {
         return m(
           "p.text-sm.font-bold.text-red-500",
-          `No such device ${attrs.deviceId}`,
+          `No such device ${displayDeviceId}`,
         );
       }
       return mContext(
@@ -68,7 +70,7 @@ export function createPage(attrs: Attrs): HTMLElement {
 
     return m(
       "div.device-page",
-      m("h1", attrs.deviceId),
+      m("h1", displayDeviceId),
       ...Object.values(conf).map((c) => {
         const componentType = evaluateExpression(
           (c as { type: Expression })["type"],
