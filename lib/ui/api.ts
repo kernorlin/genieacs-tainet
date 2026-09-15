@@ -626,21 +626,17 @@ router.post("/devices/:id/tasks", async (ctx) => {
   const lastInform = device["Events.Inform"].value[0] as number;
 
   let status = await apiFunctions.connectionRequest(deviceId, device);
-  let sessionStarted = false;
-
-  if (!status || status === "Device is offline") {
-    sessionStarted = await apiFunctions.awaitSessionStart(
+  if (!status) {
+    const sessionStarted = await apiFunctions.awaitSessionStart(
       deviceId,
       lastInform,
       onlineThreshold,
     );
-
-    if (sessionStarted) {
-      status = "";
+    if (!sessionStarted) {
+      status = "No contact from CPE";
+    } else {
       const sessionEnded = await apiFunctions.awaitSessionEnd(deviceId, 120000);
       if (!sessionEnded) status = "Session took too long to complete";
-    } else if (!status) {
-      status = "No contact from CPE";
     }
   }
 
