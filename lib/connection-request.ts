@@ -85,7 +85,8 @@ export async function httpConnectionRequest(
     return "Invalid connection request URL or protocol";
 
   const options: http.RequestOptions = {
-    agent: new http.Agent({ maxSockets: 1, keepAlive: true, timeout: timeout }),
+    agent: false,
+    timeout,
   };
 
   let authHeader: Record<string, string>;
