@@ -308,6 +308,9 @@ export async function saveDevice(
               case "0_BOOTSTRAP":
                 update["$unset"]["_lastBootstrap"] = 1;
                 break;
+              case "6_CONNECTION_REQUEST":
+                update["$unset"]["_lastConnectionRequest"] = 1;
+                break;
               case "Registered":
                 update["$unset"]["_registered"] = 1;
             }
@@ -322,6 +325,9 @@ export async function saveDevice(
                 break;
               case "0_BOOTSTRAP":
                 update["$set"]["_lastBootstrap"] = t;
+                break;
+              case "6_CONNECTION_REQUEST":
+                update["$set"]["_lastConnectionRequest"] = t;
                 break;
               case "Registered":
                 update["$set"]["_registered"] = t;

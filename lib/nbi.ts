@@ -293,10 +293,23 @@ async function handler(
           response.writeHead(202, { "Content-Type": "application/json" });
           response.end(JSON.stringify(task));
         } else {
+          const connectionRequestStart = Date.now();
           const status = await apiFunctions.connectionRequest(
             deviceId,
             flattenDevice(dev),
           );
+          if (
+            status === "Device is offline" &&
+            (await apiFunctions.awaitConnectionRequestInform(
+              deviceId,
+              connectionRequestStart,
+              30000,
+            ))
+          ) {
+            response.writeHead(200);
+            response.end();
+            return;
+          }
           if (status) {
             response.writeHead(504, status);
             response.end(status);
@@ -379,6 +392,7 @@ async function handler(
         ) as number;
       }
 
+      const connectionRequestStart = Date.now();
       let status = await apiFunctions.connectionRequest(deviceId, device);
       if (!status) {
         const sessionStarted = await apiFunctions.awaitSessionStart(
@@ -401,6 +415,24 @@ async function handler(
             });
             if (f) status = "Task faulted";
           }
+        }
+      } else if (
+        status === "Device is offline" &&
+        (await apiFunctions.awaitConnectionRequestInform(
+          deviceId,
+          connectionRequestStart,
+          onlineThreshold,
+        ))
+      ) {
+        status = "";
+        const sessionEnded = await apiFunctions.awaitSessionEnd(deviceId, 120000);
+        if (!sessionEnded) {
+          status = "Task queued but not processed";
+        } else {
+          const f = await collections.faults.count({
+            _id: `${deviceId}:task_${task._id}`,
+          });
+          if (f) status = "Task faulted";
         }
       }
 

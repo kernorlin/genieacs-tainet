@@ -110,6 +110,7 @@ export interface Cache {
 export interface Device {
   _id: string;
   _lastInform: Date;
+  _lastConnectionRequest?: Date;
   _registered: Date;
   _tags?: string[];
   _timestamp?: Date;

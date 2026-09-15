@@ -216,6 +216,17 @@ export async function connectionRequest(
   return status;
 }
 
+function getTimestamp(value: unknown): number {
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const timestamp = new Date(value).getTime();
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+  }
+
+  return 0;
+}
+
 export async function awaitSessionStart(
   deviceId: string,
   lastInform: number,
@@ -234,6 +245,24 @@ export async function awaitSessionStart(
   await new Promise((resolve) => setTimeout(resolve, 500));
   timeout -= Date.now() - now;
   return awaitSessionStart(deviceId, lastInform, timeout);
+}
+
+export async function awaitConnectionRequestInform(
+  deviceId: string,
+  since: number,
+  timeout: number,
+): Promise<boolean> {
+  const now = Date.now();
+  const device = await collections.devices.findOne(
+    { _id: deviceId },
+    { projection: { _lastConnectionRequest: 1 } },
+  );
+  const lastConnectionRequest = getTimestamp(device?.["_lastConnectionRequest"]);
+  if (lastConnectionRequest > since) return true;
+  if (timeout < 500) return false;
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  timeout -= Date.now() - now;
+  return awaitConnectionRequestInform(deviceId, since, timeout);
 }
 
 export async function awaitSessionEnd(
