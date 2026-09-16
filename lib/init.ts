@@ -325,7 +325,7 @@ export async function seed(options: Record<string, boolean>): Promise<void> {
       },
       {
         _id: "ui.overview.charts.online.slices.1_onlineNow.filter",
-        value: "Events.Inform > NOW() - 5 * 60 * 1000",
+        value: "Events.Inform > NOW() - 15 * 60 * 1000",
       },
       {
         _id: "ui.overview.charts.online.slices.1_onlineNow.label",
@@ -333,29 +333,29 @@ export async function seed(options: Record<string, boolean>): Promise<void> {
       },
       {
         _id: "ui.overview.charts.online.slices.2_past24.color",
-        value: "'#a1d99b'",
+        value: "'#fdae6b'",
       },
       {
         _id: "ui.overview.charts.online.slices.2_past24.filter",
         value:
-          "Events.Inform > (NOW() - 5 * 60 * 1000) - (24 * 60 * 60 * 1000) AND Events.Inform < (NOW() - 5 * 60 * 1000)",
+          "Events.Inform > NOW() - 24 * 60 * 60 * 1000 AND Events.Inform < NOW() - 15 * 60 * 1000",
       },
       {
         _id: "ui.overview.charts.online.slices.2_past24.label",
-        value: "'Past 24 hours'",
+        value: "'Recently seen'",
       },
       {
         _id: "ui.overview.charts.online.slices.3_others.color",
-        value: "'#e5f5e0'",
+        value: "'#d9d9d9'",
       },
       {
         _id: "ui.overview.charts.online.slices.3_others.filter",
         value:
-          "Events.Inform < (NOW() - 5 * 60 * 1000) - (24 * 60 * 60 * 1000)",
+          "Events.Inform < NOW() - 24 * 60 * 60 * 1000",
       },
       {
         _id: "ui.overview.charts.online.slices.3_others.label",
-        value: "'Others'",
+        value: "'Offline / no recent inform'",
       },
       { _id: "ui.overview.groups.online.label", value: "''" },
       { _id: "ui.overview.groups.online.charts.0", value: "'online'" },
@@ -414,3 +414,4 @@ export async function seed(options: Record<string, boolean>): Promise<void> {
   await proms;
   await Promise.all([del("ui-local-cache-hash"), del("cwmp-local-cache-hash")]);
 }
+
