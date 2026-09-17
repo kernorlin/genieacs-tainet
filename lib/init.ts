@@ -325,7 +325,7 @@ export async function seed(options: Record<string, boolean>): Promise<void> {
       },
       {
         _id: "ui.overview.charts.online.slices.1_onlineNow.filter",
-        value: "Events.Inform > NOW() - 15 * 60 * 1000",
+        value: "Events.Inform > NOW() - 5 * 60 * 1000",
       },
       {
         _id: "ui.overview.charts.online.slices.1_onlineNow.label",
@@ -338,7 +338,7 @@ export async function seed(options: Record<string, boolean>): Promise<void> {
       {
         _id: "ui.overview.charts.online.slices.2_past24.filter",
         value:
-          "Events.Inform > NOW() - 24 * 60 * 60 * 1000 AND Events.Inform < NOW() - 15 * 60 * 1000",
+          "Events.Inform > NOW() - 24 * 60 * 60 * 1000 AND Events.Inform < NOW() - 5 * 60 * 1000",
       },
       {
         _id: "ui.overview.charts.online.slices.2_past24.label",

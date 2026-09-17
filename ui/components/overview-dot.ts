@@ -1,9 +1,57 @@
 import { ClosureComponent, Component } from "mithril";
 import { m } from "../components.ts";
 import config from "../config.ts";
-import { evaluateExpression } from "../store.ts";
+import {
+  evaluateExpression,
+  getClockSkew,
+  getTimestamp,
+} from "../store.ts";
 
 const CHARTS = config.ui.overview.charts;
+const ONLINE_GRACE_SECONDS = 5 * 60;
+const DEFAULT_PERIODIC_INFORM_INTERVAL = 10 * 60;
+const RECENTLY_SEEN_SECONDS = 24 * 60 * 60;
+
+const PERIODIC_INFORM_INTERVAL_PARAMETERS = [
+  "InternetGatewayDevice.ManagementServer.PeriodicInformInterval",
+  "Device.ManagementServer.PeriodicInformInterval",
+];
+
+function getDeviceValue(device, parameter: string): unknown {
+  const value = device?.[parameter]?.value;
+  return Array.isArray(value) ? value[0] : null;
+}
+
+function getPeriodicInformInterval(device): number {
+  for (const parameter of PERIODIC_INFORM_INTERVAL_PARAMETERS) {
+    const interval = Number(getDeviceValue(device, parameter));
+    if (Number.isFinite(interval) && interval > 0) return interval;
+  }
+
+  return DEFAULT_PERIODIC_INFORM_INTERVAL;
+}
+
+function getInformStatusSlice(
+  chart,
+  device,
+): Record<string, unknown> | null {
+  const rawLastInform = getDeviceValue(device, "Events.Inform");
+  if (rawLastInform == null) return null;
+
+  const lastInform = Number(rawLastInform);
+  if (!Number.isFinite(lastInform)) return null;
+
+  const elapsed =
+    (getTimestamp() + getClockSkew() - lastInform) / 1000;
+  const onlineThreshold =
+    getPeriodicInformInterval(device) + ONLINE_GRACE_SECONDS;
+
+  const slices = chart.slices as Record<string, Record<string, unknown>>;
+  if (elapsed <= onlineThreshold) return slices["1_onlineNow"] || null;
+  if (elapsed <= RECENTLY_SEEN_SECONDS)
+    return slices["2_past24"] || null;
+  return slices["3_others"] || null;
+}
 
 const component: ClosureComponent = (): Component => {
   return {
@@ -12,9 +60,18 @@ const component: ClosureComponent = (): Component => {
       const chartName = evaluateExpression(vnode.attrs["chart"], device || {});
       const chart = CHARTS[chartName as string] as Record<string, unknown>;
       if (!chart) return null;
-      for (const slice of Object.values(chart.slices)) {
+      const isInformStatus = chartName === "online";
+      const informStatusSlice = isInformStatus
+        ? getInformStatusSlice(chart, device)
+        : null;
+      const slices: Record<string, unknown>[] = isInformStatus
+        ? informStatusSlice
+          ? [informStatusSlice]
+          : []
+        : Object.values(chart.slices);
+      for (const slice of slices) {
         const filter = slice["filter"];
-        if (evaluateExpression(filter, device || {})) {
+        if (isInformStatus || evaluateExpression(filter, device || {})) {
           const dot = m(
             "svg",
             {
