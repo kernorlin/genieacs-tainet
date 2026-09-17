@@ -318,7 +318,10 @@ export async function seed(options: Record<string, boolean>): Promise<void> {
 
   if (options.overview) {
     resources["config"] = (resources["config"] || []).concat([
-      { _id: "ui.overview.charts.online.label", value: "'Online status'" },
+      {
+        _id: "ui.overview.charts.online.label",
+        value: "'Last Inform age (fixed ranges)'",
+      },
       {
         _id: "ui.overview.charts.online.slices.1_onlineNow.color",
         value: "'#31a354'",
@@ -329,7 +332,7 @@ export async function seed(options: Record<string, boolean>): Promise<void> {
       },
       {
         _id: "ui.overview.charts.online.slices.1_onlineNow.label",
-        value: "'Online now'",
+        value: "'Within 5 minutes'",
       },
       {
         _id: "ui.overview.charts.online.slices.2_past24.color",
@@ -342,7 +345,7 @@ export async function seed(options: Record<string, boolean>): Promise<void> {
       },
       {
         _id: "ui.overview.charts.online.slices.2_past24.label",
-        value: "'Recently seen'",
+        value: "'5 minutes to 24 hours'",
       },
       {
         _id: "ui.overview.charts.online.slices.3_others.color",
@@ -355,7 +358,7 @@ export async function seed(options: Record<string, boolean>): Promise<void> {
       },
       {
         _id: "ui.overview.charts.online.slices.3_others.label",
-        value: "'Offline / no recent inform'",
+        value: "'Over 24 hours'",
       },
       { _id: "ui.overview.groups.online.label", value: "''" },
       { _id: "ui.overview.groups.online.charts.0", value: "'online'" },

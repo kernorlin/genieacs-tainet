@@ -11,6 +11,11 @@ const CHARTS = config.ui.overview.charts;
 const ONLINE_GRACE_SECONDS = 5 * 60;
 const DEFAULT_PERIODIC_INFORM_INTERVAL = 10 * 60;
 const RECENTLY_SEEN_SECONDS = 24 * 60 * 60;
+const DEVICE_STATUS_LABELS = {
+  online: "Online now",
+  recent: "Recently seen",
+  offline: "Offline / no recent inform",
+};
 
 const PERIODIC_INFORM_INTERVAL_PARAMETERS = [
   "InternetGatewayDevice.ManagementServer.PeriodicInformInterval",
@@ -34,7 +39,7 @@ function getPeriodicInformInterval(device): number {
 function getInformStatusSlice(
   chart,
   device,
-): Record<string, unknown> | null {
+): { slice: Record<string, unknown>; label: string } | null {
   const rawLastInform = getDeviceValue(device, "Events.Inform");
   if (rawLastInform == null) return null;
 
@@ -47,10 +52,17 @@ function getInformStatusSlice(
     getPeriodicInformInterval(device) + ONLINE_GRACE_SECONDS;
 
   const slices = chart.slices as Record<string, Record<string, unknown>>;
-  if (elapsed <= onlineThreshold) return slices["1_onlineNow"] || null;
+  if (elapsed <= onlineThreshold)
+    return slices["1_onlineNow"]
+      ? { slice: slices["1_onlineNow"], label: DEVICE_STATUS_LABELS.online }
+      : null;
   if (elapsed <= RECENTLY_SEEN_SECONDS)
-    return slices["2_past24"] || null;
-  return slices["3_others"] || null;
+    return slices["2_past24"]
+      ? { slice: slices["2_past24"], label: DEVICE_STATUS_LABELS.recent }
+      : null;
+  return slices["3_others"]
+    ? { slice: slices["3_others"], label: DEVICE_STATUS_LABELS.offline }
+    : null;
 }
 
 const component: ClosureComponent = (): Component => {
@@ -66,7 +78,7 @@ const component: ClosureComponent = (): Component => {
         : null;
       const slices: Record<string, unknown>[] = isInformStatus
         ? informStatusSlice
-          ? [informStatusSlice]
+          ? [informStatusSlice.slice]
           : []
         : Object.values(chart.slices);
       for (const slice of slices) {
@@ -90,7 +102,9 @@ const component: ClosureComponent = (): Component => {
           return m(
             "span.overview-dot",
             dot,
-            evaluateExpression(slice["label"], null),
+            isInformStatus
+              ? informStatusSlice?.label || ""
+              : evaluateExpression(slice["label"], null),
           );
         }
       }
