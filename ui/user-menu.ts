@@ -1,6 +1,4 @@
 import m, { ClosureComponent, Component } from "mithril";
-import * as store from "./store.ts";
-import * as notifications from "./notifications.ts";
 
 const component: ClosureComponent = (): Component => {
   return {
@@ -12,22 +10,16 @@ const component: ClosureComponent = (): Component => {
           m(
             "button",
             {
-              onclick: (e) => {
-                e.target.disabled = true;
-                store
-                  .logOut()
-                  .then(() => {
-                    location.hash = "";
-                    location.reload();
-                  })
-                  .catch((err) => {
-                    e.target.disabled = false;
-                    notifications.push("error", err.message);
-                  });
+              title: "Close GenieACS",
+              onclick: () => {
+                window.close();
+                setTimeout(() => {
+                  if (!window.closed) location.replace("about:blank");
+                }, 100);
                 return false;
               },
             },
-            "Log out",
+            "Close",
           ),
         );
       } else {
