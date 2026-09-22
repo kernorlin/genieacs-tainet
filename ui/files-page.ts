@@ -10,6 +10,7 @@ import indexTableComponent from "./index-table-component.ts";
 import * as overlay from "./overlay.ts";
 import * as smartQuery from "./smart-query.ts";
 import { map, parse, stringify } from "../lib/common/expression/parser.ts";
+import { parseProductClasses } from "../lib/common/file-product-classes.ts";
 
 const PAGE_SIZE = config.ui.pageSize || 10;
 
@@ -35,7 +36,7 @@ const attributes: {
     ],
   },
   { id: "metadata.oui", label: "OUI" },
-  { id: "metadata.productClass", label: "Product Class" },
+  { id: "metadata.productClass", label: "Product Classes" },
   { id: "metadata.version", label: "Version" },
 ];
 
@@ -43,6 +44,11 @@ const formData = {
   resource: "files",
   attributes: attributes
     .slice(1) // remove _id from new object form
+    .map((attr) =>
+      attr.id === "metadata.productClass"
+        ? { ...attr, label: "Product Classes (; separated; blank = all)" }
+        : attr,
+    )
     .concat([{ id: "file", label: "File", type: "file" }]),
 };
 
@@ -81,6 +87,76 @@ function upload(
       }
     },
   });
+}
+
+function editProductClasses(file): void {
+  let value = file["metadata.productClass"] || "";
+  let modified = false;
+  let saving = false;
+  const cb = (): Children =>
+    m("div.put-form", [
+      m("h1", "Edit Product Classes"),
+      m("p", file._id),
+      m(
+        "form",
+        {
+          onsubmit: async (e) => {
+            e.preventDefault();
+            e.redraw = false;
+            if (saving) return;
+            if (
+              !parseProductClasses(value).length &&
+              parseProductClasses(file["metadata.productClass"] || "").length &&
+              !confirm(
+                "An empty list makes this file available to all Product Classes. Continue?",
+              )
+            )
+              return;
+            saving = true;
+            try {
+              await store.xhrRequest({
+                method: "PATCH",
+                url: `api/files/${encodeURIComponent(file._id)}/product-classes`,
+                body: { productClass: value },
+              });
+              store.setTimestamp(Date.now());
+              notifications.push("success", "Product Classes updated");
+              overlay.close(cb);
+            } catch (err) {
+              notifications.push("error", err.message);
+            } finally {
+              saving = false;
+              m.redraw();
+            }
+          },
+        },
+        [
+          m(
+            "label",
+            { for: "product-classes" },
+            "Product Classes (; separated; blank = all)",
+          ),
+          m("br"),
+          m("input", {
+            id: "product-classes",
+            type: "text",
+            value,
+            oninput: (e) => {
+              value = e.target.value;
+              modified = true;
+              e.redraw = false;
+            },
+          }),
+          m(
+            ".actions-bar",
+            m("button.primary", { type: "submit", disabled: saving }, "Save"),
+          ),
+        ],
+      ),
+    ]);
+  overlay.open(cb, () =>
+    !modified || confirm("You have unsaved changes. Close anyway?"),
+  );
 }
 
 const getDownloadUrl = memoize((filter) => {
@@ -163,7 +239,25 @@ export const component: ClosureComponent = (): Component => {
       attrs["onSortChange"] = onSortChange;
       attrs["downloadUrl"] = downloadUrl;
       attrs["recordActionsCallback"] = (file) => {
-        return [m("a", { href: "api/blob/files/" + file["_id"] }, "Download")];
+        const actions: Children[] = [
+          m(
+            "a",
+            { href: "api/blob/files/" + encodeURIComponent(file["_id"]) },
+            "Download",
+          ),
+        ];
+        if (window.authorizer.hasAccess("files", 3))
+          actions.push(
+            m(
+              "button",
+              {
+                title: "Edit compatible Product Classes",
+                onclick: () => editProductClasses(file),
+              },
+              "Edit classes",
+            ),
+          );
+        return actions;
       };
 
       if (window.authorizer.hasAccess("files", 3)) {
@@ -190,8 +284,9 @@ export const component: ClosureComponent = (): Component => {
                           const headers = {
                             "metadata-fileType": obj["metadata.fileType"] || "",
                             "metadata-oui": obj["metadata.oui"] || "",
-                            "metadata-productclass":
+                            "metadata-productclass": parseProductClasses(
                               obj["metadata.productClass"] || "",
+                            ).join("; "),
                             "metadata-version": obj["metadata.version"] || "",
                           };
 
@@ -202,7 +297,10 @@ export const component: ClosureComponent = (): Component => {
 
                           if (await store.resourceExists("files", file.name)) {
                             store.setTimestamp(Date.now());
-                            notifications.push("error", "File already exists");
+                            notifications.push(
+                              "error",
+                              "File already exists. Edit its Product Classes in the file list.",
+                            );
                             return;
                           }
 

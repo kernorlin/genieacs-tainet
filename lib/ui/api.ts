@@ -17,6 +17,7 @@ import { stringify as yamlStringify } from "../common/yaml.ts";
 import { ResourceLockedError } from "../common/errors.ts";
 import { acquireLock, releaseLock } from "../lock.ts";
 import { collections } from "../db/db.ts";
+import { parseProductClasses } from "../common/file-product-classes.ts";
 
 const router = new Router();
 export default router;
@@ -527,6 +528,51 @@ router.put("/files/:id", async (ctx) => {
   log.metadata = metadata;
   logger.accessInfo(log);
 
+  ctx.body = "";
+});
+
+router.patch("/files/:id/product-classes", async (ctx) => {
+  const authorizer: Authorizer = ctx.state.authorizer;
+  const id = ctx.params.id;
+  const log = { message: "Update file product classes", context: ctx, id };
+
+  if (!authorizer.hasAccess("files", 3)) {
+    logUnauthorizedWarning(log);
+    return void (ctx.status = 403);
+  }
+
+  const filter = and(authorizer.getFilter("files", 3), [
+    "=",
+    ["PARAM", "_id"],
+    id,
+  ]);
+  const { value: file } = await db.query("files", filter).next();
+  if (!file) return void (ctx.status = 404);
+
+  const productClass = ctx.request.body?.productClass;
+  if (typeof productClass !== "string" || productClass.length > 1024) {
+    ctx.status = 400;
+    ctx.body = "Invalid Product Class list";
+    return;
+  }
+
+  const normalized = parseProductClasses(productClass).join("; ");
+  const metadata = {
+    fileType: file["metadata.fileType"] || "",
+    oui: file["metadata.oui"] || "",
+    productClass: normalized,
+    version: file["metadata.version"] || "",
+  };
+  if (!authorizer.getValidator("files", metadata)("put")) {
+    logUnauthorizedWarning(log);
+    return void (ctx.status = 403);
+  }
+
+  await collections.files.updateOne(
+    { _id: id },
+    { $set: { "metadata.productClass": normalized } },
+  );
+  logger.accessInfo(log);
   ctx.body = "";
 });
 

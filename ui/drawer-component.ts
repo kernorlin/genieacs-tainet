@@ -7,6 +7,7 @@ import m, {
 } from "mithril";
 import * as store from "./store.ts";
 import * as notifications from "./notifications.ts";
+import { productClassesMatch } from "../lib/common/file-product-classes.ts";
 import { getIcon } from "./icons.ts";
 import {
   clear,
@@ -87,19 +88,20 @@ function renderStagingDownload(task: StageTask): Children {
   else invalid.delete(task);
   const files = store.fetch("files", true);
   let oui = "";
-  let productClass = "";
+  const productClasses = new Set<string>();
+  let allHaveProductClass = true;
   for (const d of task.devices) {
     const parts = d.split("-");
     if (oui === "") oui = parts[0];
     else if (oui !== parts[0]) oui = null;
     if (parts.length === 3) {
-      if (productClass === "") productClass = parts[1];
-      else if (productClass !== parts[1]) productClass = null;
+      productClasses.add(decodeURIComponent(parts[1]));
+    } else {
+      allHaveProductClass = false;
     }
   }
 
   if (oui) oui = decodeURIComponent(oui);
-  if (productClass) productClass = decodeURIComponent(productClass);
 
   const typesList = [
     ...new Set([
@@ -125,8 +127,10 @@ function renderStagingDownload(task: StageTask): Children {
         .filter(
           (f) =>
             (!f["metadata.oui"] || f["metadata.oui"] === oui) &&
-            (!f["metadata.productClass"] ||
-              f["metadata.productClass"] === productClass),
+            productClassesMatch(
+              f["metadata.productClass"] || "",
+              allHaveProductClass ? productClasses : [],
+            ),
         )
         .map((f) => f._id),
     )
