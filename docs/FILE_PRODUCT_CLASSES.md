@@ -11,3 +11,10 @@ Validation on Debian after pulling and building the source:
 3. Push to a test CPE. Confirm the `cwmp:Download`, `cwmp-fs` GET, and `7 TRANSFER COMPLETE` evidence.
 
 No MongoDB migration is required: the existing `metadata.productClass` string stores a normalized semicolon-separated list. Back up `fs.files` metadata before rollout. Do not re-upload an existing filename merely to change its compatible classes.
+
+## Validation Record (2026-09-22)
+
+- Source branch: `tainet-v1.2.16-dev`; implementation commit: `ba4926b`.
+- The operator reported the shared-file behavior tested OK. No packet capture or per-device Download result was supplied for this change, so those checks remain separate from this UI acceptance.
+- Keep the filename unique in GridFS. Update Product Class compatibility through `Edit classes`; no duplicate upload or database migration is needed.
+- Before promoting this dev branch to `tainet-v1.2.16`, review and validate the other commits on the branch independently.
